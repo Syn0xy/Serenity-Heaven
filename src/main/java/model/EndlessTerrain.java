@@ -1,11 +1,13 @@
 package model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-import util.Vector2;
+import model.cell.Cell;
+import utils.Updatable;
+import utils.Vector2;
 
 public class EndlessTerrain {
 
@@ -27,9 +29,9 @@ public class EndlessTerrain {
 
     private Vector2 oldViewerPosition;
 
-    protected EndlessTerrain(Vector2 viewerPosition){
+    public EndlessTerrain(Vector2 viewerPosition){
         this.terrainChunks = new HashMap<>();
-        this.visibleTerrainChunks = new ArrayList<>();
+        this.visibleTerrainChunks = new CopyOnWriteArrayList<>();
         this.viewerPosition = viewerPosition;
         this.oldViewerPosition = viewerPosition.copy();
         updateVisibleChunks();
@@ -61,10 +63,8 @@ public class EndlessTerrain {
             oldViewerPosition = viewerPosition.copy();
             updateVisibleChunks();
         }
-        
-        for(TerrainChunk chunk : visibleTerrainChunks){
-            chunk.update();
-        }
+
+        this.visibleTerrainChunks.forEach(Updatable::update);
     }
 
     private void updateVisibleChunks(){

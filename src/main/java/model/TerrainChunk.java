@@ -6,12 +6,17 @@ import static model.EndlessTerrain.MAX_VIEW_DISTANCE;
 import java.util.ArrayList;
 import java.util.List;
 
+import model.cell.AnimationCell;
+import model.cell.Cell;
+import model.cell.DeadTree;
 import model.cell.Flower;
+import model.cell.Grass;
 import model.cell.Land;
 import model.cell.Water;
-import util.Vector2;
+import utils.Updatable;
+import utils.Vector2;
 
-public class TerrainChunk {
+public class TerrainChunk implements Updatable {
 
     private Vector2 position;
 
@@ -53,9 +58,15 @@ public class TerrainChunk {
                 
                 if(noisemap[x][y] > 0){
                     cellList.add(new Land());
+
+                    double ran = Math.random();
                     
-                    if(Math.random() > 0.95){
+                    if(ran > 0.95){
                         cellList.add(new Flower());
+                    }else if(ran > 0.92){
+                        cellList.add(new DeadTree());
+                    }else if(ran > 0.80){
+                        cellList.add(new Grass());
                     }
                 }
                 
@@ -65,7 +76,7 @@ public class TerrainChunk {
 
     public void placeCell(int x, int y, Cell cell){
         List<Cell> listCell = cells[x][y];
-        Cell lastCell = listCell.getLast();
+        Cell lastCell = listCell.get(listCell.size() - 1);
         if(cell.isPlaceable(lastCell)){
             listCell.add(cell);
             if(cell instanceof AnimationCell){
@@ -73,11 +84,10 @@ public class TerrainChunk {
             }
         }
     }
-
-    public void update(){
-        for(AnimationCell cell : updatableCells){
-            cell.update();
-        }
+    
+    @Override
+    public void update() {
+        this.updatableCells.forEach(Updatable::update);
     }
     
 }

@@ -2,8 +2,8 @@ package model;
 
 import static model.EndlessTerrain.CHUNK_SIZE;
 
-import util.SimplexNoise;
-import util.Vector2;
+import utils.SimplexNoise;
+import utils.Vector2;
 
 public class MapData {
 

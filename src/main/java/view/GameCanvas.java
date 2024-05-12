@@ -1,27 +1,30 @@
 package view;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Point;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.List;
 
-import javax.swing.JPanel;
-
-import entity.Entity;
-import entity.FollowingCamera;
 import manager.Sprite;
-import model.Cell;
-import model.GameScene;
 import model.TerrainChunk;
-import util.Vector2;
+import model.cell.Cell;
+import model.component.BoxCollider;
+import model.component.Collider;
+import model.component.EllipseCollider;
+import model.component.SphereCollider;
+import model.entity.Entity;
+import model.entity.movable.player.FollowingCamera;
+import model.scene.GameScene;
+import utils.Vector2;
 
-public class GameCanvas extends JPanel {
+public class GameCanvas extends Component {
 
-    private static final int ZOOM_SIZE = 560;
+    private static final int ZOOM_SIZE = 512;
 
     private static final int CELL_PIXEL = 16;
+
+    private GameScene gameScene;
     
     private int width;
 
@@ -38,51 +41,57 @@ public class GameCanvas extends JPanel {
     private List<TerrainChunk> visibleTerrainChunks;
 
     private Vector2 currentSelected;
+
+    private Vector2 mousePosition;
     
-    protected GameCanvas(GameScene gameScene){
+    protected GameCanvas(GameScene gameScene) {
+        this.gameScene = gameScene;
         this.viewer = gameScene.getViewer();
         this.followViewer = new FollowingCamera(viewer);
         this.entities = gameScene.getEntities();
         this.visibleTerrainChunks = gameScene.getVisibleTerrainChunks();
-        
-        addMouseListener(
-            new MouseListener() {
-
-                @Override public void mouseClicked(MouseEvent e) {}
-
-                @Override public void mousePressed(MouseEvent e) {
-                    if(currentSelected != null){
-                        gameScene.interact(currentSelected);
-                    }
-                }
-
-                @Override public void mouseReleased(MouseEvent e) {}
-
-                @Override public void mouseEntered(MouseEvent e) {}
-
-                @Override public void mouseExited(MouseEvent e) {}
-                
-            }
-        );
+    }
+    
+    public void interact() {
+        if (this.currentSelected != null) {
+            this.gameScene.interact(currentSelected);
+        }
     }
 
-    private void refreshInteract(){
+    private boolean containsPoint(int x, int y) {
+        return x >= - this.width / 2 - this.cellSize
+            && y >= - this.height / 2 - this.cellSize
+            && x <= this.width / 2
+            && y <= this.height / 2;
+    }
+
+    private void refreshInteract() {
         Point mouse = getMousePosition();
+        this.mousePosition = new Vector2(mouse.x, mouse.y);
         Vector2 target = followViewer.getPosition();
-        currentSelected = new Vector2(
-            // Math.round(target.x) + (int)((mouse.x + cellSize / 2) / cellSize) - getWidth() / (2 * cellSize),
-            (int)Math.floor(target.x + (int)(((mouse.x + cellSize / 2) / cellSize)) - getWidth() / (2 * cellSize)),
-            (int)Math.floor(target.y - (int)(mouse.y / cellSize) + (getHeight() - cellSize) / (2 * cellSize))
+
+        Vector2 offset = new Vector2(
+            mouse.x - (this.width - this.cellSize) / 2,
+            mouse.y - (this.height - this.cellSize) / 2
+        );
+
+        System.out.println(offset);
+
+        this.currentSelected = new Vector2(
+            (int)Math.floor(target.x + offset.x / this.cellSize),
+            (int)Math.floor(target.y - offset.y / this.cellSize)
         );
     }
 
     @Override
-    public void paint(Graphics g){
-        followViewer.update();
-        width = getWidth();
-        height = getHeight();
-        cellSize = (width / ZOOM_SIZE) * CELL_PIXEL;
+    public void paint(Graphics g) {
+        this.width = getWidth();
+        this.height = getHeight();
+        this.followViewer.update();
+        this.cellSize = (this.width / ZOOM_SIZE) * CELL_PIXEL;
         clearScreen(g);
+        
+        g.translate(this.width / 2, this.height / 2);
         drawVisibleChunks(g);
         drawEntities(g);
 
@@ -90,20 +99,28 @@ public class GameCanvas extends JPanel {
             refreshInteract();
             drawSelected(g);
         } catch (Exception e) {}
-    }
-
-    private void clearScreen(Graphics g){
+        
+        g.translate(- this.width / 2, - this.height / 2);
+        
         g.setColor(Color.BLACK);
-        g.fillRect(0, 0, width, height);
+        g.drawString("Entities: " + this.entities.size(), 30, 30);
+        g.drawString("Mouse position: " + this.mousePosition, 30, 60);
+        g.drawString("Current selected: " + this.currentSelected, 30, 90);
+        g.drawString("Player: " + this.entities.get(0).getPosition(), 30, 120);
     }
 
-    private void drawVisibleChunks(Graphics g){
-        for (TerrainChunk chunk : visibleTerrainChunks) {
+    private void clearScreen(Graphics g) {
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, this.width, this.height);
+    }
+    
+    private void drawVisibleChunks(Graphics g) {
+        for (TerrainChunk chunk : this.visibleTerrainChunks) {
             drawChunk(g, chunk);
         }
     }
 
-    private void drawChunk(Graphics g, TerrainChunk chunk){
+    private void drawChunk(Graphics g, TerrainChunk chunk) {
         Vector2 position = chunk.getPosition();
         List<Cell>[][] cells = chunk.getCells();
         
@@ -120,38 +137,106 @@ public class GameCanvas extends JPanel {
         }
     }
 
-    private void drawEntities(Graphics g){
-        for (Entity entity : entities) {
+    private void drawEntities(Graphics g) {
+        for (Entity entity : this.entities) {
             placeImage(g, entity);
+            drawUIHealth(g, entity);
+            drawCollider(g, entity.getCollider());
         }
     }
 
-    private void placeImage(Graphics g, Entity entity){
-        placeImage(g, entity.getSprite(), entity.getPosition());
+    private void placeImage(Graphics g, Entity entity) {
+        placeImage(g, entity.getAnimation(), entity.getPosition());
     }
     
-    private void placeImage(Graphics g, Sprite sprite, Vector2 position){
+    private void placeImage(Graphics g, Sprite sprite, Vector2 position) {
         placeImage(g, sprite, position.x, position.y);
     }
 
-    private void placeImage(Graphics g, Sprite sprite, float x, float y){
-        g.drawImage(
-            sprite.getImage(),
-            (int)(width / 2 + (x - followViewer.getPosition().x - sprite.getWidth() + 0.5) * cellSize),
-            (int)(height / 2 + (followViewer.getPosition().y - y - sprite.getHeight() + 0.5) * cellSize),
-            cellSize * sprite.getWidth(),
-            cellSize * sprite.getHeight(),
-            null);
+    private void placeImage(Graphics g, Sprite sprite, float x, float y) {
+        int px = (int)((x - this.followViewer.getPosition().x - sprite.getWidth() / 2 - 0.5) * cellSize);
+        int py = (int)((this.followViewer.getPosition().y - y - sprite.getHeight() / 2 - 0.5) * cellSize);
+        int sx = cellSize * sprite.getWidth();
+        int sy = cellSize * sprite.getHeight();
+        if (containsPoint(px, py)) {
+            g.drawImage(sprite.getImage(), px, py, sx, sy, null);
+        }
     }
     
-    private void drawSelected(Graphics g){
-        if(currentSelected != null){
-            int x = (int)(width / 2 + (currentSelected.x - followViewer.getPosition().x - 0.5) * cellSize);
-            int y = (int)(height / 2 + (followViewer.getPosition().y - currentSelected.y - 0.5) * cellSize);
+    private void drawSelected(Graphics g) {
+        if(this.currentSelected != null){
+            int x = (int)((this.currentSelected.x - this.followViewer.getPosition().x - 0.5) * this.cellSize);
+            int y = (int)((this.followViewer.getPosition().y - this.currentSelected.y - 0.5) * this.cellSize);
             g.setColor(Color.WHITE);
-            g.drawRect(x + 1, y + 1, cellSize - 1, cellSize - 1);
+            g.drawRect(x + 1, y + 1, this.cellSize - 1, this.cellSize - 1);
             g.setColor(Color.BLACK);
-            g.drawRect(x, y, cellSize + 1, cellSize + 1);
+            g.drawRect(x, y, this.cellSize + 1, this.cellSize + 1);
+        }
+    }
+
+    private void drawUIHealth(Graphics g, Entity entity) {
+        if(!entity.isFull()) {
+            Vector2 pos = entity.getPosition();
+            int sx = this.cellSize + this.cellSize / 2;
+            int sy = this.cellSize / 8;
+            int px = (int)(this.width / 2 + (pos.x - this.followViewer.getPosition().x) * this.cellSize) - sx / 2;
+            int py = (int)(this.height / 2 + (this.followViewer.getPosition().y - pos.y - 0.5) * this.cellSize) - sy * 2;
+            int crx = (sx * entity.getCurrentHealth()) / entity.getMaxHealth();
+            
+            if(containsPoint(px, py)) {
+                g.setColor(Color.RED);
+                g.fillRect(px, py, sx, sy);
+                
+                if(crx >= 0) {
+                    g.setColor(Color.GREEN);
+                    g.fillRect(px, py, crx, sy);
+                }
+            }
+        }
+    }
+
+    private void drawCollider(Graphics g, Collider collider) {
+        Vector2 pos = collider.getPosition();
+        if(collider instanceof SphereCollider) {
+            SphereCollider scollider = (SphereCollider)collider;
+            int px = (int)((pos.x - followViewer.getPosition().x - scollider.getRadius()) * cellSize);
+            int py = (int)((followViewer.getPosition().y - pos.y - scollider.getRadius()) * cellSize);
+            int sx = (int)(cellSize * scollider.getRadius() * 2);
+            int sy = (int)(cellSize * scollider.getRadius() * 2);
+            if(containsPoint(px, py)) {
+                g.setColor(Color.GREEN);
+                g.drawOval(px, py, sx - 1, sy - 1);
+                g.drawLine(px + sx / 2, py, px + sx / 2 - 1, py + sy - 1);
+                g.drawLine(px, py + sy / 2, px + sx - 1, py + sy / 2 - 1);
+            }
+        } else if(collider instanceof EllipseCollider) {
+            EllipseCollider ecollider = (EllipseCollider)collider;
+            float rwidth = ecollider.getWidth();
+            float rheight = ecollider.getHeight();
+            int px = (int)((pos.x - followViewer.getPosition().x - rwidth / 2) * cellSize);
+            int py = (int)((followViewer.getPosition().y - pos.y - rheight / 2) * cellSize);
+            int sx = (int)(cellSize * rwidth);
+            int sy = (int)(cellSize * rheight);
+            if(containsPoint(px, py)) {
+                g.setColor(Color.GREEN);
+                g.drawOval(px, py, sx - 1, sy - 1);
+                g.drawLine(px + sx / 2, py, px + sx / 2 - 1, py + sy - 1);
+                g.drawLine(px, py + sy / 2, px + sx - 1, py + sy / 2 - 1);
+            }
+        } else if (collider instanceof BoxCollider) {
+            BoxCollider bcollider = (BoxCollider)collider;
+            float rwidth = bcollider.getWidth();
+            float rheight = bcollider.getHeight();
+            int px = (int)((pos.x - followViewer.getPosition().x - rwidth / 2) * cellSize);
+            int py = (int)((followViewer.getPosition().y - pos.y - rheight / 2) * cellSize);
+            int sx = (int)(cellSize * rwidth);
+            int sy = (int)(cellSize * rheight);
+            if(containsPoint(px, py)) {
+                g.setColor(Color.GREEN);
+                g.drawRect(px - 1, py - 1, sx + 1, sy + 1);
+                g.drawLine(px + sx / 2, py, px + sx / 2, py + sy);
+                g.drawLine(px, py + sy / 2, px + sx, py + sy / 2);
+            }
         }
     }
 

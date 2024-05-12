@@ -7,7 +7,16 @@ public class ImageDatas {
         new ImageData("land_spring", "./res/nature/land_spring.png"),
         new ImageData("land_summer", "./res/nature/land_summer.png"),
         new ImageData("land_winter", "./res/nature/land_winter.png"),
-        new ImageData("flower_1", "./res/nature/flower_1.png"),
+        
+        new ImageData("flower_1", "./res/nature/flower/flower_1.png"),
+
+        new ImageData("grass_1", "./res/nature/grass/grass_1.png"),
+        new ImageData("grass_2", "./res/nature/grass/grass_2.png"),
+        
+        new ImageData("dead_tree", "./res/nature/tree/dead_tree.png"),
+        new ImageData("moss_tree", "./res/nature/tree/moss_tree.png"),
+        new ImageData("tree_stump", "./res/nature/tree/tree_stump.png"),
+
         // new DataImage("water_autumn", "./res/nature/water_autumn.png"),
         new ImageData("water_spring", "./res/nature/water_spring.png"),
         // new DataImage("water_summer", "./res/nature/water_summer.png"),
@@ -23,6 +32,7 @@ public class ImageDatas {
         new ImageData("chicken_right_walk", "./res/entities/chicken/chicken_right_walk.png", 6),
         new ImageData("chicken_up_idle", "./res/entities/chicken/chicken_up_idle.png", 4),
         new ImageData("chicken_up_walk", "./res/entities/chicken/chicken_up_walk.png", 6),
+        new ImageData("chicken_down_dead", "./res/entities/chicken/chicken_down_dead.png", 4),
         
         new ImageData("slime_idle", "./res/entities/slime/slime_idle.png", 4),
         new ImageData("slime_dead", "./res/entities/slime/slime_dead.png", 5),

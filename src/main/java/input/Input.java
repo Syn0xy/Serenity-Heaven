@@ -2,15 +2,16 @@ package input;
 
 import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.Map;
 
-import util.Vector2;
+import utils.Updatable;
+import utils.Vector2;
 
-public class Input implements KeyListener{
+public class Input extends KeyAdapter {
 
-    private static Map<KeyCode, InputKeyCode> INPUTS_KEY_CODE = InputKeyCode.getInputsKeyCode();
+    private static final Map<KeyCode, InputKeyCode> INPUTS_KEY_CODE = InputKeyCode.getInputsKeyCode();
 
     private static Input singleton;
 
@@ -18,11 +19,9 @@ public class Input implements KeyListener{
         if(singleton == null) singleton = new Input();
         return singleton;
     }
-    
-    public static void update(){
-        for(InputKeyCode input : INPUTS_KEY_CODE.values()){
-            input.update();
-        }
+
+    public static void update() {
+        INPUTS_KEY_CODE.values().forEach(Updatable::update);
     }
 
     @Override
@@ -42,9 +41,6 @@ public class Input implements KeyListener{
             System.err.println(e.getMessage());
         }
     }
-
-    @Override
-    public void keyTyped(KeyEvent keyEvent) {}
     
     public static boolean getKey(KeyCode keyCode){
         return INPUTS_KEY_CODE.get(keyCode).isStay();

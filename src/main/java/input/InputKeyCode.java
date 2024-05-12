@@ -3,7 +3,9 @@ package input;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InputKeyCode {
+import utils.Updatable;
+
+public class InputKeyCode implements Updatable {
     
     private boolean enter;
     
@@ -42,8 +44,9 @@ public class InputKeyCode {
     protected void exit(){
         this.exit = true;
     }
-
-    protected void update(){
+    
+    @Override
+    public void update() {
         if(nothing) return;
         if(enter) enter = false;
         if(exit) reset();

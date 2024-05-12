@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.time.Instant;
 
 import manager.AnimationAction;
-import model.AnimationCell;
 import model.CellType;
 
 public abstract class Sprout extends AnimationCell {

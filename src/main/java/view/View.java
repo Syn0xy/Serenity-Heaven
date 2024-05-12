@@ -1,8 +1,11 @@
 package view;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 
 import javax.swing.JFrame;
 
@@ -25,23 +28,43 @@ public abstract class View extends JFrame {
     private double timeDiff;
 
     private int counter = 0;
+
+    private Runtime runtime;
+    
+    protected void init(int width, int height){
+        this.runtime = Runtime.getRuntime();
+        KeyListener keyListener = getKeyAdapter();
+        MouseAdapter mouseAdapter = getMouseAdapter();
+        
+        addKeyListener(keyListener);
+        addMouseListener(mouseAdapter);
+        addMouseMotionListener(mouseAdapter);
+        addMouseWheelListener(mouseAdapter);
+        
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setFocusTraversalKeysEnabled(false);
+        setSize(width, height);
+        setLocation(center());
+        setTitle(getTitle());
+        add(getContent());
+        setVisible(true);
+    }
     
     public abstract String getTitle();
 
-    protected View(int width, int height){
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setFocusTraversalKeysEnabled(false);
-        setTitle(getTitle());
-        setSize(width, height);
-        setLocation(center());
-        setVisible(true);
+    public abstract Component getContent();
+
+    public KeyListener getKeyAdapter() {
+        return null;
+    }
+
+    public MouseAdapter getMouseAdapter() {
+        return null;
     }
     
     protected Point center(){
         return new Point((SCREEN_WIDTH - getWidth()) / 2, (SCREEN_HEIGHT - getHeight()) / 2);
     }
-    
-    Runtime runtime = Runtime.getRuntime();
 
     protected void refreshFrames(){
         crntTime = System.currentTimeMillis();

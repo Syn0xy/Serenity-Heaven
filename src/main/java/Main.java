@@ -1,14 +1,11 @@
 import manager.ImageManager;
-import model.GameScene;
-import view.GameView;
+import model.scene.GameScene;
 
-public class Main{
+public class Main {
     
     public static void main(String[] args) {
         ImageManager.init();
-        GameScene gameScene = GameScene.getInstance();
-        new GameView(gameScene);
-        gameScene.start();
+        GameScene.getInstance().start(150);
     }
 
 }

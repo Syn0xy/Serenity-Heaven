@@ -2,7 +2,6 @@ package model.cell;
 
 import manager.StaticSprite;
 import model.CellType;
-import model.StaticCell;
 
 public class Land extends StaticCell {
 

@@ -4,7 +4,9 @@ import java.awt.Image;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AnimationSprite implements Sprite {
+import utils.Updatable;
+
+public class AnimationSprite implements Sprite, Updatable {
 
     private Image currentImage;
 
@@ -15,6 +17,8 @@ public class AnimationSprite implements Sprite {
     private Map<String, AnimationAction> actions;
 
     private Image[] currentFrames;
+
+    private String currentAction;
 
     private String nextAction;
 
@@ -54,12 +58,17 @@ public class AnimationSprite implements Sprite {
     }
 
     public void setAction(String action){
+        if(currentAction != null && currentAction.equals(action)){
+            return;
+        }
+        
         AnimationAction animationAction = actions.get(action);
-
+        
         if(animationAction != null && animationAction.data != null){
+            this.currentAction = action;
             ImageData data = animationAction.data;
-            this.currentFrameIndex = 0;
             this.maxTime = 1000.0 / animationAction.framerate;
+            this.currentFrameIndex = 0;
             this.currentFrames = data.frames;
             this.currentImage = currentFrames[currentFrameIndex];
             this.currentWidth = data.width;
@@ -68,13 +77,14 @@ public class AnimationSprite implements Sprite {
         }
     }
     
-    public void update(){
+    @Override
+    public void update() {
         crntTime = System.currentTimeMillis();
         if(crntTime - prevTime > maxTime){
             prevTime = crntTime;
             currentFrameIndex++;
             if(currentFrameIndex % currentFrames.length == 0){
-                currentFrameIndex = 0;
+                this.currentFrameIndex = 0;
                 setAction(nextAction);
             }
             currentImage = currentFrames[currentFrameIndex];

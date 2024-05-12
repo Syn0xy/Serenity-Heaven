@@ -1,11 +1,15 @@
 package view;
 
-import input.Input;
-import model.GameScene;
-import view.util.Observer;
-import view.util.Subject;
+import java.awt.Component;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
-public class GameView extends View implements Observer {
+import input.Input;
+import model.scene.GameScene;
+import utils.Updatable;
+
+public class GameView extends View implements Updatable {
 
     private static final int WIDTH = (int)(SCREEN_WIDTH * (2.0 / 3.0));
 
@@ -13,12 +17,14 @@ public class GameView extends View implements Observer {
 
     private static final String TITLE = "Serenity Heaven";
 
+    private GameScene gameScene;
+
+    private GameCanvas canvas;
+
     public GameView(GameScene gameScene) {
-        super(WIDTH, HEIGHT);
+        this.gameScene = gameScene;
         gameScene.attach(this);
-        addKeyListener(Input.getInstance());
-        add(new GameCanvas(gameScene));
-        revalidate();
+        init(WIDTH, HEIGHT);
     }
 
     @Override
@@ -27,14 +33,29 @@ public class GameView extends View implements Observer {
     }
 
     @Override
-    public void update(Subject subj) {
-        repaint();
-        refreshFrames();
+    public Component getContent() {
+        return canvas = new GameCanvas(gameScene);
     }
 
     @Override
-    public void update(Subject subj, Object data) {
+    public KeyListener getKeyAdapter() {
+        return Input.getInstance();
+    }
 
+    @Override
+    public MouseAdapter getMouseAdapter() {
+        return new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                canvas.interact();
+            }
+        };
+    }
+        
+    @Override
+    public void update() {
+        repaint();
+        refreshFrames();
     }
     
 }

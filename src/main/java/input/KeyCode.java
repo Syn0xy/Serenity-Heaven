@@ -84,7 +84,7 @@ public enum KeyCode {
 
     private String key;
     
-    private KeyCode(int code, String key){
+    private KeyCode(int code, String key) {
         this.code = code;
         this.key = key;
     }
@@ -93,13 +93,13 @@ public enum KeyCode {
         return code;
     }
 
-    public String getKey(){
+    public String getKey() {
         return key;
     }
 
     public static KeyCode key(KeyEvent keyEvent) throws KeyNotAssociatedException {
-        for(KeyCode keyCode : values()){
-            if(keyEvent.getKeyCode() == keyCode.code){
+        for (KeyCode keyCode : values()) {
+            if (keyEvent.getKeyCode() == keyCode.code) {
                 return keyCode;
             }
         }
